@@ -39,7 +39,6 @@ class StatsPanel {
     GRAPH_HEIGHT: number;
   };
   canvas: HTMLCanvasElement;
-
   constructor(name: string, props: StatsPanelProps) {
     this.name = name;
     this.unit = props.unit || "";
@@ -48,7 +47,7 @@ class StatsPanel {
     this.textColor = props.textColor || this.fg;
     this.min = Infinity;
     this.max = 0;
-
+    
     this.pixelRatio = Math.round(window.devicePixelRatio || 1);
 
     this.width = props.width || 80;
@@ -65,7 +64,7 @@ class StatsPanel {
       GRAPH_Y: (this.fontSize + 2 * this.padding) * this.pixelRatio,
       GRAPH_WIDTH: (this.width - 2 * this.padding) * this.pixelRatio,
       GRAPH_HEIGHT: (this.height - (3 * this.padding + this.fontSize)) * this.pixelRatio
-    };
+    }
 
     this.canvas = document.createElement("canvas")!;
     this.canvas.width = this.dimmensions.WIDTH;
@@ -92,7 +91,6 @@ class StatsPanel {
     this.context.globalAlpha = 0.9;
     this.context.fillRect(this.dimmensions.GRAPH_X, this.dimmensions.GRAPH_Y, this.dimmensions.GRAPH_WIDTH, this.dimmensions.GRAPH_HEIGHT);
   }
-
   update(value: number, maxValue: number) {
     this.min = Math.min(this.min, value);
     this.max = Math.max(this.max, value);
@@ -134,6 +132,8 @@ class StatsPanel {
 }
 
 
+
+
 class Stats {
   REVISION: number;
   currentPanelIndex: number;
@@ -148,13 +148,13 @@ class Stats {
   prevTime: number;
   frames: number;
   auxPanelUpdatePeriod: number;
+  _displayStyle: number;
   DISPLAY_STYLES: {
     NONE: number;
     SINGLE: number;
     STACKED_X: number;
     STACKED_Y: number;
   };
-
   constructor() {
     this.DISPLAY_STYLES = { NONE: 0, SINGLE: 1, STACKED_X: 2, STACKED_Y: 3 };
     this.REVISION = 16;
@@ -195,112 +195,97 @@ class Stats {
     this._displayStyle = this.DISPLAY_STYLES.STACKED_Y;
     this.displayStyle = this._displayStyle;
   }
-
-  _displayStyle: number;
-
-  get displayStyle() {
-    return this._displayStyle;
-  }
-
-  set displayStyle(displayStyle: number) {
-    switch (displayStyle) {
-      case this.DISPLAY_STYLES.NONE: {
-        this.hide();
-        this._displayStyle = displayStyle;
-      }
-        break;
-      case this.DISPLAY_STYLES.SINGLE: {
-        this.unhide();
-        this.container.classList.remove("renderer-stats-container-stacked-x");
-        this.container.classList.remove("renderer-stats-container-stacked-y");
-        this.showSinglePanel(this.currentPanelIndex);
-        this._displayStyle = displayStyle;
-      }
-        break;
-      case this.DISPLAY_STYLES.STACKED_X: {
-        this.unhide();
-        this.container.classList.remove("renderer-stats-container-stacked-y");
-        this.container.classList.add("renderer-stats-container-stacked-x");
-        this.showAllPanels();
-        this._displayStyle = displayStyle;
-      }
-        break;
-      case this.DISPLAY_STYLES.STACKED_Y: {
-        this.unhide();
-        this.container.classList.remove("renderer-stats-container-stacked-x");
-        this.container.classList.add("renderer-stats-container-stacked-y");
-        this.showAllPanels();
-        this._displayStyle = displayStyle;
-      }
-        break;
-      default:
-        break;
-    }
-  }
-
-  get hidden() {
-    return this.container.classList.contains("renderer-stats-container-hidden");
-  }
-
-  get domElement() {
-    return this.container;
-  }
-
-  set domElement(element: HTMLElement) {
-    this.container = element;
-  }
-
   addPanel(panel: StatsPanel) {
     this.container.appendChild(panel.dom);
     return panel;
   }
-
   showSinglePanel(id: number) {
     for (let i = 0; i < this.container.children.length; i++) {
       if (i == id) {
         (this.container.children[i] as HTMLCanvasElement).classList.remove("renderer-stats-panel-hidden");
-      } else {
+      }
+      else {
         (this.container.children[i] as HTMLCanvasElement).classList.add("renderer-stats-panel-hidden");
       }
     }
 
     this.currentPanelIndex = id;
   }
-
   showAllPanels() {
     for (let i = 0; i < this.container.children.length; i++) {
       (this.container.children[i] as HTMLCanvasElement).classList.remove("renderer-stats-panel-hidden");
     }
   }
-
+  set displayStyle(displayStyle: number) {
+    switch (displayStyle) {
+      case this.DISPLAY_STYLES.NONE:
+        {
+          this.hide();
+          this._displayStyle = displayStyle;
+        }
+        break;
+      case this.DISPLAY_STYLES.SINGLE:
+        {
+          this.unhide();
+          this.container.classList.remove("renderer-stats-container-stacked-x");
+          this.container.classList.remove("renderer-stats-container-stacked-y");
+          this.showSinglePanel(this.currentPanelIndex);
+          this._displayStyle = displayStyle;
+        }
+        break;
+      case this.DISPLAY_STYLES.STACKED_X:
+        {
+          this.unhide();
+          this.container.classList.remove("renderer-stats-container-stacked-y");
+          this.container.classList.add("renderer-stats-container-stacked-x");
+          this.showAllPanels();
+          this._displayStyle = displayStyle;
+        }
+        break;
+      case this.DISPLAY_STYLES.STACKED_Y:
+        {
+          this.unhide();
+          this.container.classList.remove("renderer-stats-container-stacked-x");
+          this.container.classList.add("renderer-stats-container-stacked-y");
+          this.showAllPanels();
+          this._displayStyle = displayStyle;
+        }
+        break;
+      default:
+        break;
+    }
+  }
+  get displayStyle() {
+    return this._displayStyle;
+  }
+  get hidden() {
+    return this.container.classList.contains("renderer-stats-container-hidden");
+  }
   hide() {
     if (!this.hidden) {
       this.container.classList.add("renderer-stats-container-hidden");
     }
   }
-
   unhide() {
     if (this.hidden) {
       this.container.classList.remove("renderer-stats-container-hidden");
     }
   }
-
   clickHandler(event: MouseEvent) {
     event.preventDefault();
     if (event.shiftKey) {
       const displayStyle = (this._displayStyle + 1) % Object.keys(this.DISPLAY_STYLES).length;
       this.displayStyle = displayStyle == this.DISPLAY_STYLES.NONE ? displayStyle + 1 : displayStyle;
-    } else {
+    }
+    else {
       if (this.displayStyle == this.DISPLAY_STYLES.SINGLE) {
         this.showSinglePanel((this.currentPanelIndex + 1) % this.container.children.length);
       }
     }
   }
-
   begin() {
     this.beginTime = (performance || Date).now();
   }
-
   end() {
     this.frames++;
 
@@ -325,15 +310,20 @@ class Stats {
 
     return time;
   }
-
   update() {
     this.beginTime = this.end();
+  }
+  get domElement() {
+    return this.container;
+  }
+  set domElement(element: HTMLElement) {
+    this.container = element;
   }
 }
 
 export {
   Stats,
   StatsPanel
-};
+}
 
 export default Stats;

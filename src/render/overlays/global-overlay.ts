@@ -1,5 +1,6 @@
 import "./global-overlay.css";
-import { uuid } from "uuidv4";
+import roundTo from "../../common/round-to";
+import { uuid } from 'uuidv4';
 
 
 export interface GlobalOverlayCell<T> {
@@ -16,57 +17,51 @@ export type GlobalOverlayCellOpts<T> = {
   formatter?: (value: T) => string;
 }
 
-export class GlobalOverlayCell<T> {
+export class GlobalOverlayCell<T>{
   constructor(label: string, value: T, opts: GlobalOverlayCellOpts<T>) {
     this.label = label;
     this.value = value;
-
+    
     this.formatter = opts.formatter || ((value: T) => String(value));
     this.id = opts.id || label;
-    this.elt = document.createElement("span");
-    this.elt.setAttribute("class", "global_overlay-cell");
-    const labelElt = document.createElement("span");
+    this.elt = document.createElement('span');
+    this.elt.setAttribute('class', "global_overlay-cell");
+    const labelElt = document.createElement('span');
     labelElt.textContent = this.label + ":";
     labelElt.setAttribute("class", "global_overlay-label");
     this.elt.appendChild(labelElt);
-    const valueElt = document.createElement("span");
+    const valueElt = document.createElement('span');
     valueElt.textContent = this.formatter(this.value);
     valueElt.setAttribute("class", "global_overlay-value");
     this.elt.appendChild(valueElt);
-    if (opts.hasOwnProperty("hidden")) {
+    if (opts.hasOwnProperty('hidden')) {
       if (opts.hidden) {
         this.hide();
       }
     }
   }
-
-  get hidden() {
-    return this.elt.classList.contains("global_overlay-cell-hidden");
-  }
-
-  get labelElt() {
-    return this.elt.children[0];
-  }
-
-  get valueElt() {
-    return this.elt.children[1];
-  }
-
   setValue(value: T) {
     this.value = value;
     this.valueElt.textContent = this.formatter(this.value);
   }
-
   show() {
     if (this.hidden) {
       this.elt.classList.remove("global_overlay-cell-hidden");
     }
   }
-
   hide() {
     if (!this.hidden) {
       this.elt.classList.add("global_overlay-cell-hidden");
     }
+  }
+  get hidden() {
+    return this.elt.classList.contains("global_overlay-cell-hidden");
+  }
+  get labelElt() {
+    return this.elt.children[0];
+  }
+  get valueElt() {
+    return this.elt.children[1];
   }
 }
 
@@ -76,7 +71,6 @@ export class GlobalOverlay {
   elt: HTMLElement;
   parent: HTMLElement;
   cells: Map<string, GlobalOverlayCell<AllowedType>>;
-
   constructor(parent: HTMLElement) {
     this.cells = new Map<string, GlobalOverlayCell<AllowedType>>();
     this.elt = document.createElement("div");
@@ -87,27 +81,6 @@ export class GlobalOverlay {
     this.setCellValue = this.setCellValue.bind(this);
 
   }
-
-  get hidden() {
-    return this.elt.classList.contains("global_overlay-hidden");
-  }
-
-  set hidden(shouldHide: boolean) {
-    if (shouldHide) {
-      this.hide();
-    }
-  }
-
-  get visible() {
-    return !this.hidden;
-  }
-
-  set visible(shouldShow: boolean) {
-    if (shouldShow) {
-      this.show();
-    }
-  }
-
   setCellValue(id: string, value: AllowedType) {
     if (this.cells.has(id)) {
       const cell = this.cells.get(id)!;
@@ -122,11 +95,12 @@ export class GlobalOverlay {
       this.cells.set(id, cell);
       this.elt.appendChild(cell.elt);
       return cell;
-    } else {
+    }
+    else {
       console.warn(`GlobalOverlay already has cell with id ${id}`);
     }
   }
-
+  
   removeCell(id: string) {
     if (this.cells.has(id)) {
       const cell = this.cells.get(id)!;
@@ -134,13 +108,12 @@ export class GlobalOverlay {
       this.cells.delete(id);
     }
   }
-
+  
   show() {
     if (this.hidden) {
       this.elt.classList.remove("global_overlay-hidden");
     }
   }
-
   hide() {
     if (!this.hidden) {
       this.elt.classList.add("global_overlay-hidden");
@@ -153,11 +126,26 @@ export class GlobalOverlay {
       cell.show();
     }
   }
-
   hideCell(id: string) {
     if (this.cells.has(id)) {
       const cell = this.cells.get(id)!;
       cell.hide();
+    }
+  }
+  get hidden() {
+    return this.elt.classList.contains("global_overlay-hidden");
+  }
+  set hidden(shouldHide: boolean) {
+    if (shouldHide) {
+      this.hide();
+    }
+  }
+  get visible() {
+    return !this.hidden;
+  }
+  set visible(shouldShow: boolean) {
+    if (shouldShow) {
+      this.show();
     }
   }
 }

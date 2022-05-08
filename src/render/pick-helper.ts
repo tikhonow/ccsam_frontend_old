@@ -1,7 +1,6 @@
 import * as THREE from "three";
 import Container from "../objects/container";
 import { TransformControls } from "./TransformControls";
-
 type point = {
   x: number;
   y: number;
@@ -21,7 +20,6 @@ export default class PickHelper {
   mount: any;
   __pickedObject: any;
   __pickedPoint: any;
-
   constructor(scene, camera, mount) {
     this.pickPosition = { x: 0, y: 0 };
     this.raycaster = new THREE.Raycaster();

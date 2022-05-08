@@ -1,10 +1,13 @@
-import { Camera, MOUSE, Object3D } from "Three";
+import { Object3D, Camera, Vector3, Euler, MOUSE } from "Three";
 
 export class TransformControls extends Object3D {
+  constructor(object: Camera, domElement?: HTMLElement);
+
   domElement: HTMLElement;
-  camera: Camera;
 
   // API
+
+  camera: Camera;
   object: Object3D | undefined;
   allAssociatedObjects: Object3D[] | undefined;
   enabled: boolean;
@@ -25,23 +28,13 @@ export class TransformControls extends Object3D {
     RIGHT: MOUSE;
   };
 
-  constructor(object: Camera, domElement?: HTMLElement);
-
-  attach(objects: Object3D | Object3D[]): this;
-
+  attach(objects: Object3D|Object3D[]): this;
   detach(): this;
-
   getMode(): string;
-
   setMode(mode: string): void;
-
   setTranslationSnap(translationSnap: Number | null): void;
-
   setRotationSnap(rotationSnap: Number | null): void;
-
   setSize(size: number): void;
-
   setSpace(space: string): void;
-
   dispose(): void;
 }

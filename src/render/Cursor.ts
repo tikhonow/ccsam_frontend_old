@@ -1,10 +1,9 @@
 import * as THREE from "three";
 import Container from "../objects/container";
-import { SPRITE_CURSOR } from "../objects/asset-store";
+import { SPRITE_CURSOR } from '../objects/asset-store';
 
 class Cursor extends Container {
   sprite: THREE.Sprite;
-
   constructor() {
     super("cursor");
 
@@ -29,6 +28,6 @@ class Cursor extends Container {
 
 export {
   Cursor
-};
+}
 
 export default Cursor;

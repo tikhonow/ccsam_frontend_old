@@ -4,6 +4,6 @@ import vs from "!raw-loader!./shader.vert";
 import fs from "!raw-loader!./shader.frag";
 
 export default {
-  vs,
-  fs
-};
+    vs,
+    fs
+}

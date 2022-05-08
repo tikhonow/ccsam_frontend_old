@@ -2,8 +2,16 @@
  * @author mrdoob / http://mrdoob.com/
  */
 
-
-import { BufferGeometry, Color, Float32BufferAttribute, LineBasicMaterial, LineSegments, VertexColors } from "three";
+ 
+ 
+import {
+  LineSegments,
+  VertexColors,
+  LineBasicMaterial,
+  Float32BufferAttribute,
+  BufferGeometry,
+  Color
+} from "three"; 
 
 function ModifiedGridHelper(size, divisions, color1, color2, skipFunction) {
   size = size || 10;
@@ -20,7 +28,7 @@ function ModifiedGridHelper(size, divisions, color1, color2, skipFunction) {
 
   for (var i = 0, j = 0, k = -halfSize; i <= divisions; i++, k += step) {
     if (skipFunction(i)) {
-
+      
       vertices.push(-halfSize, k, 0, halfSize, k, 0);
       vertices.push(k, -halfSize, 0, k, halfSize, 0);
 
@@ -53,7 +61,7 @@ function ModifiedGridHelper(size, divisions, color1, color2, skipFunction) {
 ModifiedGridHelper.prototype = Object.assign(Object.create(LineSegments.prototype), {
   constructor: ModifiedGridHelper,
 
-  copy: function(source) {
+  copy: function (source) {
     LineSegments.prototype.copy.call(this, source);
 
     this.geometry.copy(source.geometry);
@@ -62,7 +70,7 @@ ModifiedGridHelper.prototype = Object.assign(Object.create(LineSegments.prototyp
     return this;
   },
 
-  clone: function() {
+  clone: function () {
     return new this.constructor().copy(this);
   }
 });

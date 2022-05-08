@@ -21,20 +21,16 @@ export default class Lights extends Container {
     const helper = new THREE.DirectionalLightHelper(light, size, helperColor);
     // this.helpers.add(helper);
   }
-
+  setHelpersVisible(visible) {
+    this.helpers.visible = visible;
+  }
   get ambientLights() {
     return this.children[0];
   }
-
   get geometryLights() {
     return this.children[1];
   }
-
   get helpers() {
     return this.children[2];
-  }
-
-  setHelpersVisible(visible) {
-    this.helpers.visible = visible;
   }
 }

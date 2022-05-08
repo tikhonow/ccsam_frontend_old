@@ -1,13 +1,15 @@
 import * as THREE from "three";
 import Stats from "./Stats";
+import { Line2 } from "three/examples/jsm/lines/Line2";
+import { LineGeometry } from "three/examples/jsm/lines/LineGeometry";
+import { LineMaterial } from "three/examples/jsm/lines/LineMaterial";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass";
 import { OutlinePass } from "three/examples/jsm/postprocessing/OutlinePass";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass";
-//import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { OrbitControls } from "./OrbitControls";
 import { TransformControls } from "./TransformControls";
-import { angle2quat, quat2angle, QuatAngle } from "../common/QuatAngle";
+import { quat2angle, angle2quat, QuatAngle } from "../common/QuatAngle";
 import { CameraStore } from "../common/storage-schemas";
 
 import Timer from "../common/timer";
@@ -24,19 +26,19 @@ import defaults from "../default-storage";
 import Axes from "./env/axes";
 import Lights from "./env/lights";
 import Room from "../objects/room";
-import { emit, messenger, on } from "../messenger";
+import Messenger, { emit, messenger, on } from "../messenger";
 
 import { addMoment, Directions } from "../history";
 
 import PickHelper from "./pick-helper";
 
-import { GlobalOverlay, TransformOverlay } from "./overlays";
+import { TransformOverlay, GlobalOverlay } from "./overlays";
 import hotkeys from "hotkeys-js";
 
 import {
+  OrientationControl,
   OrientationAxisAdds,
   OrientationAxisQuats,
-  OrientationControl,
   OrientationControlOptions
 } from "./orientation-control/orientation-control";
 
@@ -47,6 +49,7 @@ import { Markup } from "./Markup";
 import Model from "../objects/model";
 import { useContainer } from "../store";
 import { useSetting } from "../store/settings-store";
+
 
 
 const colored_number_html = (num: number) =>
@@ -108,6 +111,7 @@ export interface ModifierKeyState {
 }
 
 
+
 export interface Overlays {
   transform: TransformOverlay;
   global: GlobalOverlay;
@@ -121,8 +125,11 @@ export default class Renderer {
 
   elt!: HTMLCanvasElement;
   renderer!: THREE.WebGLRenderer;
+
+  _camera!: THREE.PerspectiveCamera | THREE.OrthographicCamera;
   perspectiveCamera!: THREE.PerspectiveCamera;
   orthoCamera!: THREE.OrthographicCamera;
+
   scene!: THREE.Scene;
   env!: Container;
   fdtdItems!: Container;
@@ -130,36 +137,54 @@ export default class Renderer {
   workspace!: Container;
   sketches!: Container;
   markup!: Markup;
+
   lights!: Lights;
   axes!: Axes;
   grid!: Grid;
+
   stack!: Array<(...args) => void>;
+
   settingHandlers!: KeyValuePair<(val: any) => void>;
+
   sourceGroup!: Container;
   sourceTemplate!: Container;
+
   receiverGroup!: Container;
   receiverTemplate!: Container;
+
   geometryGroup!: Container;
   controls;
+
   workspaceCursor!: THREE.Object3D;
   fog!: THREE.FogExp2 | THREE.Fog;
+
+  _fov!: number;
+
   textures!: KeyValuePair<THREE.Texture>;
   smoothingCameraCallback!: any;
   smoothingCamera!: boolean;
+
   pickHelper!: PickHelper;
   cursor!: Cursor;
   composer!: EffectComposer;
   outlinePass!: OutlinePass;
   renderPass!: RenderPass;
   effectFXAA!: ShaderPass;
+
   transformControls!: TransformControls;
   currentlyMovingObjects!: boolean;
+
   overlays!: Overlays;
   fdtd2drunning!: boolean;
   fdtd3drunning!: boolean;
+
+
   needsToRender!: boolean;
+
   shouldAnimate: boolean;
+
   orientationControl!: OrientationControl;
+
   currentProcess!: Processes;
 
   constructor() {
@@ -169,167 +194,6 @@ export default class Renderer {
 
     this.shouldAnimate = false;
     this.currentProcess = Processes.NONE;
-  }
-
-  _camera!: THREE.PerspectiveCamera | THREE.OrthographicCamera;
-
-  get camera() {
-    return this._camera;
-  }
-
-  set camera(camera: THREE.PerspectiveCamera | THREE.OrthographicCamera) {
-    const quat = new THREE.Quaternion().copy(this._camera.quaternion);
-    const pos = new THREE.Vector3().copy(this._camera.position);
-    this._camera = camera;
-    this._camera.up.set(0, 0, 1);
-    // this.controls.dispose();
-    // this.controls = new OrbitControls(this._camera, this.renderer.domElement);
-    // this.controls.mouseButtons = this.mouseConfigSet.Default;
-    // this.controls.screenSpacePanning = true;
-    this.controls.object = this._camera;
-    this.controls.update();
-    this.transformControls.camera = this._camera;
-    this._camera.position.set(pos.x, pos.y, pos.z);
-    this._camera.setRotationFromQuaternion(quat);
-    this._camera.quaternion.normalize();
-    this._camera.updateProjectionMatrix();
-    if (this.renderPass.camera.uuid !== this._camera.uuid) {
-      this.renderPass.camera = this._camera;
-    }
-
-    this.pickHelper = new PickHelper(this.scene, this._camera, this.renderer.domElement);
-    this.needsToRender = true;
-  }
-
-  _fov!: number;
-
-  get fov() {
-    return this.camera instanceof THREE.PerspectiveCamera ? this.camera.fov : this._fov;
-  }
-
-  set fov(fov: number) {
-    this._fov = fov;
-    if (this.camera instanceof THREE.PerspectiveCamera) {
-      this.camera.fov = fov;
-    }
-    this.needsToRender = true;
-  }
-
-  /**
-   * returns true if performing an operation, like moving an object.
-   * put this here so that if user presses escape while moving/operating it doesnt deselect
-   */
-  get isPerformingOperation() {
-    return this.currentlyMovingObjects;
-  }
-
-  get fogDensity() {
-    return (this.scene && this.scene.fog && (this.scene.fog as THREE.FogExp2).density) || 0.015;
-  }
-
-  set fogDensity(density: number) {
-    (this.scene.fog as THREE.FogExp2).density = density;
-  }
-
-  get gridVisible() {
-    return this.grid ? this.grid.visible : true;
-  }
-
-  set gridVisible(visible: boolean) {
-    this.grid.visible = visible;
-    this.needsToRender = true;
-  }
-
-  get cursorVisible() {
-    return this.cursor ? this.cursor.visible : true;
-  }
-
-  set cursorVisible(visible: boolean) {
-    this.cursor.visible = visible;
-    this.needsToRender = true;
-  }
-
-  get axisVisible() {
-    return this.axes ? this.axes.visible : true;
-  }
-
-  set axisVisible(visible: boolean) {
-    this.axes.visible = visible;
-    this.needsToRender = true;
-  }
-
-  get zoom() {
-    return (this.camera && this.camera.zoom) || 1;
-  }
-
-  set zoom(zoom: number) {
-    this.camera.zoom = zoom;
-    this.camera.updateProjectionMatrix();
-    this.needsToRender = true;
-  }
-
-  get near() {
-    return (this.camera && this.camera.near) || 0.01;
-  }
-
-  set near(near: number) {
-    this.camera.near = near;
-    this.camera.updateProjectionMatrix();
-    this.needsToRender = true;
-  }
-
-  get far() {
-    return (this.camera && this.camera.far) || 500;
-  }
-
-  set far(far: number) {
-    this.camera.far = far;
-    this.camera.updateProjectionMatrix();
-    this.needsToRender = true;
-  }
-
-  get isOrtho() {
-    return this.camera instanceof THREE.OrthographicCamera;
-  }
-
-  set isOrtho(ortho: boolean) {
-    if (ortho != this.isOrtho) {
-      this.setOrtho(this.camera instanceof THREE.PerspectiveCamera);
-      this.needsToRender = true;
-      this.storeCameraState();
-    }
-  }
-
-  get background() {
-    return (this.scene.background as THREE.Color).getHexString();
-  }
-
-  set background(color: string) {
-    (this.scene.background as THREE.Color).setStyle(color);
-  }
-
-  get fogColor() {
-    return (this.scene.fog && this.scene.fog.color && this.scene.fog.color.getHexString()) || "#000000";
-  }
-
-  set fogColor(color: string) {
-    this.scene.fog?.color.setStyle(color);
-  }
-
-  private get clientWidth() {
-    return (this.elt.parentElement as HTMLDivElement).clientWidth;
-  }
-
-  private get clientHeight() {
-    return (this.elt.parentElement as HTMLDivElement).clientHeight;
-  }
-
-  private get aspect() {
-    return this.clientWidth / this.clientHeight;
-  }
-
-  private get mode() {
-    return messenger.postMessage("GET_EDITOR_MODE")[0];
   }
 
   init(elt: HTMLCanvasElement) {
@@ -401,7 +265,6 @@ export default class Renderer {
       antialias: true,
       depth: true
     });
-
 
     this.renderer.setSize(this.clientWidth, this.clientHeight);
     const pixelRatio = window.devicePixelRatio;
@@ -546,7 +409,7 @@ export default class Renderer {
       this.fogColor = args[0];
       this.needsToRender = true;
     });
-
+    
     messenger.addMessageHandler("SHOULD_REMOVE_CONTAINER", (acc, ...args) => {
       const id = args[0];
       const object = this.scene.getObjectByProperty("uuid", id);
@@ -557,6 +420,7 @@ export default class Renderer {
       }
       this.needsToRender = true;
     });
+
 
 
     messenger.addMessageHandler("LOOK_ALONG_AXIS", (acc, ...args) => {
@@ -585,6 +449,11 @@ export default class Renderer {
       this.needsToRender = true;
     });
 
+
+
+
+
+  
 
     messenger.addMessageHandler("TOGGLE_RENDERER_STATS_VISIBLE", () => {
       if (this.stats.hidden) {
@@ -827,7 +696,6 @@ export default class Renderer {
       this.renderer.domElement.parentElement?.clientHeight || 0
     );
   }
-
   resizeCanvasToDisplaySize(force?: boolean) {
     const canvas = this.renderer.domElement;
     // look up the size the canvas is being displayed
@@ -853,7 +721,6 @@ export default class Renderer {
       // update any render target sizes here
     }
   }
-
   checkresize() {
     if (
       this.renderer.domElement.width !== this.renderer.domElement.parentElement?.clientWidth ||
@@ -863,31 +730,25 @@ export default class Renderer {
       this.resize();
     }
   }
-
   settingChanged(setting: string, value: any) {
     this.settingHandlers[setting](value);
   }
-
   addRays(rays: THREE.LineSegments) {
     this.scene.add(rays);
   }
-
   add(obj: THREE.Object3D) {
     this.workspaceCursor.add(obj);
     this.needsToRender = true;
   }
-
   remove(obj: THREE.Object3D) {
     this.workspaceCursor.remove(obj);
     // this.workspace.getObjectByProperty("uuid", obj.uuid)?.remove();
     this.needsToRender = true;
   }
-
   addModel(model: Model) {
     this.workspaceCursor.add(model);
     this.needsToRender = true;
   }
-
   addRoom(room: Room) {
     this.workspaceCursor.add(room);
     this.needsToRender = true;
@@ -903,7 +764,6 @@ export default class Renderer {
       right: halfwidth
     };
   }
-
   getOrthoBounds() {
     if (this.camera instanceof THREE.OrthographicCamera) {
       return [this.camera.top, this.camera.bottom, this.camera.left, this.camera.right];
@@ -940,8 +800,7 @@ export default class Renderer {
     const originalPosition = this.camera.position.clone();
     const originalTarget = this.controls.target.clone();
     const target = params.target || originalTarget.clone();
-    const timer = new Timer(params.duration || 1000, () => {
-    });
+    const timer = new Timer(params.duration || 1000, () => {});
     const curveFunction = params.easingFunction || EasingFunctions.linear;
     this.smoothingCamera = true;
     this.smoothingCameraCallback = () => {
@@ -975,8 +834,7 @@ export default class Renderer {
     const originalDistance = originalTarget.distanceTo(originalPosition);
     const originalQuat = this.camera.quaternion.clone();
     const targetQuat = params.quat || originalQuat.clone();
-    const timer = new Timer(params.duration || 1000, (_timer) => {
-    });
+    const timer = new Timer(params.duration || 1000, (_timer) => {});
     const curveFunction = params.easingFunction || EasingFunctions.linear;
     this.smoothingCamera = true;
     this.smoothingCameraCallback = () => {
@@ -1018,6 +876,8 @@ export default class Renderer {
     var triangleShape = new THREE.Shape().moveTo(80, 20).lineTo(40, 80).lineTo(120, 80).lineTo(80, 20); // close path
   }
 
+
+
   update() {
     if (this.smoothingCamera) {
       this.needsToRender = true;
@@ -1032,7 +892,6 @@ export default class Renderer {
       this.overlays.global.setCellValue("heap", this.stats.memPanelValue!);
     }
   }
-
   updateCursorSize() {
     if (this.camera instanceof THREE.OrthographicCamera) {
       this.cursor.sprite.scale.setScalar(1 / this.camera.zoom);
@@ -1040,7 +899,6 @@ export default class Renderer {
       this.cursor.sprite.scale.setScalar(0.035);
     }
   }
-
   render() {
     this.update();
     this.resizeCanvasToDisplaySize();
@@ -1060,6 +918,152 @@ export default class Renderer {
       this.orientationControl.render();
     }
     requestAnimationFrame(this.render);
+  }
+
+  /**
+   * returns true if performing an operation, like moving an object.
+   * put this here so that if user presses escape while moving/operating it doesnt deselect
+   */
+  get isPerformingOperation() {
+    return this.currentlyMovingObjects;
+  }
+
+  get camera() {
+    return this._camera;
+  }
+
+  set camera(camera: THREE.PerspectiveCamera | THREE.OrthographicCamera) {
+    const quat = new THREE.Quaternion().copy(this._camera.quaternion);
+    const pos = new THREE.Vector3().copy(this._camera.position);
+    this._camera = camera;
+    this._camera.up.set(0, 0, 1);
+    // this.controls.dispose();
+    // this.controls = new OrbitControls(this._camera, this.renderer.domElement);
+    // this.controls.mouseButtons = this.mouseConfigSet.Default;
+    // this.controls.screenSpacePanning = true;
+    this.controls.object = this._camera;
+    this.controls.update();
+    this.transformControls.camera = this._camera;
+    this._camera.position.set(pos.x, pos.y, pos.z);
+    this._camera.setRotationFromQuaternion(quat);
+    this._camera.quaternion.normalize();
+    this._camera.updateProjectionMatrix();
+    if (this.renderPass.camera.uuid !== this._camera.uuid) {
+      this.renderPass.camera = this._camera;
+    }
+
+    this.pickHelper = new PickHelper(this.scene, this._camera, this.renderer.domElement);
+    this.needsToRender = true;
+  }
+
+  get fogDensity() {
+    return (this.scene && this.scene.fog && (this.scene.fog as THREE.FogExp2).density) || 0.015;
+  }
+
+  set fogDensity(density: number) {
+    (this.scene.fog as THREE.FogExp2).density = density;
+  }
+
+  get gridVisible() {
+    return this.grid ? this.grid.visible : true;
+  }
+
+  set gridVisible(visible: boolean) {
+    this.grid.visible = visible;
+    this.needsToRender = true;
+  }
+  get cursorVisible() {
+    return this.cursor ? this.cursor.visible : true;
+  }
+
+  set cursorVisible(visible: boolean) {
+    this.cursor.visible = visible;
+    this.needsToRender = true;
+  }
+
+  get axisVisible() {
+    return this.axes ? this.axes.visible : true;
+  }
+
+  set axisVisible(visible: boolean) {
+    this.axes.visible = visible;
+    this.needsToRender = true;
+  }
+
+  get zoom() {
+    return (this.camera && this.camera.zoom) || 1;
+  }
+
+  set zoom(zoom: number) {
+    this.camera.zoom = zoom;
+    this.camera.updateProjectionMatrix();
+    this.needsToRender = true;
+  }
+  get near() {
+    return (this.camera && this.camera.near) || 0.01;
+  }
+
+  set near(near: number) {
+    this.camera.near = near;
+    this.camera.updateProjectionMatrix();
+    this.needsToRender = true;
+  }
+  get far() {
+    return (this.camera && this.camera.far) || 500;
+  }
+
+  set far(far: number) {
+    this.camera.far = far;
+    this.camera.updateProjectionMatrix();
+    this.needsToRender = true;
+  }
+
+  get isOrtho() {
+    return this.camera instanceof THREE.OrthographicCamera;
+  }
+
+  set isOrtho(ortho: boolean) {
+    if (ortho != this.isOrtho) {
+      this.setOrtho(this.camera instanceof THREE.PerspectiveCamera);
+      this.needsToRender = true;
+      this.storeCameraState();
+    }
+  }
+
+  get background() {
+    return (this.scene.background as THREE.Color).getHexString();
+  }
+  set background(color: string) {
+    (this.scene.background as THREE.Color).setStyle(color);
+  }
+  get fogColor() {
+    return (this.scene.fog && this.scene.fog.color && this.scene.fog.color.getHexString()) || "#000000";
+  }
+  set fogColor(color: string) {
+    this.scene.fog?.color.setStyle(color);
+  }
+  get fov() {
+    return this.camera instanceof THREE.PerspectiveCamera ? this.camera.fov : this._fov;
+  }
+  set fov(fov: number) {
+    this._fov = fov;
+    if (this.camera instanceof THREE.PerspectiveCamera) {
+      this.camera.fov = fov;
+    }
+    this.needsToRender = true;
+  }
+
+  private get clientWidth() {
+    return (this.elt.parentElement as HTMLDivElement).clientWidth;
+  }
+  private get clientHeight() {
+    return (this.elt.parentElement as HTMLDivElement).clientHeight;
+  }
+  private get aspect() {
+    return this.clientWidth / this.clientHeight;
+  }
+  private get mode() {
+    return messenger.postMessage("GET_EDITOR_MODE")[0];
   }
 }
 
@@ -1108,11 +1112,10 @@ on("STOP_OPERATIONS", () => {
 });
 
 on("MOVE_SELECTED_OBJECTS", () => {
-  const selectedObjects = useContainer.getState().selectedObjects;
+  const selectedObjects = useContainer.getState().selectedObjects
   if (selectedObjects && selectedObjects.size > 0) {
     selectedObjects.forEach(container => container.userData.lastSave = container.save());
     hotkeys.setScope("EDITOR_MOVING");
-    renderer.transformControls.detach();
     renderer.overlays.transform.setValues(0, 0, 0);
     renderer.transformControls.setTranslationSnap(0.01);
     renderer.overlays.transform.show();
@@ -1125,9 +1128,7 @@ on("MOVE_SELECTED_OBJECTS", () => {
 });
 
 
-on("TOGGLE_CAMERA_ORTHO", () => {
-  renderer.isOrtho = !renderer.isOrtho;
-});
+on("TOGGLE_CAMERA_ORTHO", () => { renderer.isOrtho = !renderer.isOrtho; });
 
 on("FOCUS_ON_SELECTED_OBJECTS", () => {
   const selectedObjects = [...useContainer.getState().selectedObjects];

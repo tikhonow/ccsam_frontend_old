@@ -1,25 +1,31 @@
-import { ShaderLib, ShaderMaterial, UniformsLib, UniformsUtils, Vector2 } from "three";
+import {
+	ShaderLib,
+	ShaderMaterial,
+	UniformsLib,
+	UniformsUtils,
+	Vector2
+} from "three";
 
 //@ts-ignore
 UniformsLib.line = {
 
-  linewidth: { value: 1 },
-  resolution: { value: new Vector2(1, 1) },
-  dashScale: { value: 1 },
-  dashSize: { value: 1 },
-  gapSize: { value: 1 } // todo FIX - maybe change to totalSize
+	linewidth: { value: 1 },
+	resolution: { value: new Vector2( 1, 1 ) },
+	dashScale: { value: 1 },
+	dashSize: { value: 1 },
+	gapSize: { value: 1 } // todo FIX - maybe change to totalSize
 
 };
 
 ShaderLib["line"] = {
-  uniforms: UniformsUtils.merge([
-    UniformsLib.common,
-    UniformsLib.fog,
-    //@ts-ignore
-    UniformsLib.line
-  ]),
+	uniforms: UniformsUtils.merge([
+		UniformsLib.common,
+		UniformsLib.fog,
+		//@ts-ignore
+		UniformsLib.line
+	]),
 
-  vertexShader: `
+	vertexShader: `
 		#include <common>
 		#include <color_pars_vertex>
 		#include <fog_pars_vertex>
@@ -165,7 +171,7 @@ ShaderLib["line"] = {
 		}
 		`,
 
-  fragmentShader: `
+	fragmentShader: `
 		uniform vec3 diffuse;
 		uniform float opacity;
 
@@ -224,140 +230,140 @@ ShaderLib["line"] = {
 		`
 };
 
-var LineMaterial = function(parameters) {
+var LineMaterial = function ( parameters ) {
 
-  ShaderMaterial.call(this, {
+	ShaderMaterial.call( this, {
 
-    type: "LineMaterial",
+		type: 'LineMaterial',
 
-    uniforms: UniformsUtils.clone(ShaderLib["line"].uniforms),
+		uniforms: UniformsUtils.clone( ShaderLib[ 'line' ].uniforms ),
 
-    vertexShader: ShaderLib["line"].vertexShader,
-    fragmentShader: ShaderLib["line"].fragmentShader,
+		vertexShader: ShaderLib[ 'line' ].vertexShader,
+		fragmentShader: ShaderLib[ 'line' ].fragmentShader,
 
-    clipping: true // required for clipping support
+		clipping: true // required for clipping support
 
-  });
+	} );
 
-  this.dashed = false;
+	this.dashed = false;
 
-  Object.defineProperties(this, {
+	Object.defineProperties( this, {
 
-    color: {
+		color: {
 
-      enumerable: true,
+			enumerable: true,
 
-      get: function() {
+			get: function () {
 
-        return this.uniforms.diffuse.value;
+				return this.uniforms.diffuse.value;
 
-      },
+			},
 
-      set: function(value) {
+			set: function ( value ) {
 
-        this.uniforms.diffuse.value = value;
+				this.uniforms.diffuse.value = value;
 
-      }
+			}
 
-    },
+		},
 
-    linewidth: {
+		linewidth: {
 
-      enumerable: true,
+			enumerable: true,
 
-      get: function() {
+			get: function () {
 
-        return this.uniforms.linewidth.value;
+				return this.uniforms.linewidth.value;
 
-      },
+			},
 
-      set: function(value) {
+			set: function ( value ) {
 
-        this.uniforms.linewidth.value = value;
+				this.uniforms.linewidth.value = value;
 
-      }
+			}
 
-    },
+		},
 
-    dashScale: {
+		dashScale: {
 
-      enumerable: true,
+			enumerable: true,
 
-      get: function() {
+			get: function () {
 
-        return this.uniforms.dashScale.value;
+				return this.uniforms.dashScale.value;
 
-      },
+			},
 
-      set: function(value) {
+			set: function ( value ) {
 
-        this.uniforms.dashScale.value = value;
+				this.uniforms.dashScale.value = value;
 
-      }
+			}
 
-    },
+		},
 
-    dashSize: {
+		dashSize: {
 
-      enumerable: true,
+			enumerable: true,
 
-      get: function() {
+			get: function () {
 
-        return this.uniforms.dashSize.value;
+				return this.uniforms.dashSize.value;
 
-      },
+			},
 
-      set: function(value) {
+			set: function ( value ) {
 
-        this.uniforms.dashSize.value = value;
+				this.uniforms.dashSize.value = value;
 
-      }
+			}
 
-    },
+		},
 
-    gapSize: {
+		gapSize: {
 
-      enumerable: true,
+			enumerable: true,
 
-      get: function() {
+			get: function () {
 
-        return this.uniforms.gapSize.value;
+				return this.uniforms.gapSize.value;
 
-      },
+			},
 
-      set: function(value) {
+			set: function ( value ) {
 
-        this.uniforms.gapSize.value = value;
+				this.uniforms.gapSize.value = value;
 
-      }
+			}
 
-    },
+		},
 
-    resolution: {
+		resolution: {
 
-      enumerable: true,
+			enumerable: true,
 
-      get: function() {
+			get: function () {
 
-        return this.uniforms.resolution.value;
+				return this.uniforms.resolution.value;
 
-      },
+			},
 
-      set: function(value) {
+			set: function ( value ) {
 
-        this.uniforms.resolution.value.copy(value);
+				this.uniforms.resolution.value.copy( value );
 
-      }
+			}
 
-    }
+		}
 
-  });
+	} );
 
-  this.setValues(parameters);
+	this.setValues( parameters );
 
 };
 
-LineMaterial.prototype = Object.create(ShaderMaterial.prototype);
+LineMaterial.prototype = Object.create( ShaderMaterial.prototype );
 LineMaterial.prototype.constructor = LineMaterial;
 
 LineMaterial.prototype.isLineMaterial = true;

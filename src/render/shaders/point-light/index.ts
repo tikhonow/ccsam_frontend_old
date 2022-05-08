@@ -4,6 +4,6 @@ import vs from "raw-loader!glslify-loader!./shader.vert";
 import fs from "raw-loader!glslify-loader!./shader.frag";
 
 export default {
-  vs,
-  fs
-};
+    vs,
+    fs
+}
