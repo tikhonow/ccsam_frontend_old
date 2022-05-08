@@ -197,14 +197,13 @@ const Hybrid = ({ uuid }: { uuid: string }) => {
 
 const Output = ({ uuid }: { uuid: string }) => {
   const [open, toggle] = useToggle(true);
-  const [impulseResponsePlaying, setImpulseResponsePlaying] = useSolverProperty<RayTracer, "impulseResponsePlaying">(uuid, "impulseResponsePlaying", "RAYTRACER_SET_PROPERTY");
   return (
+
     <PropertyRowFolder label="Impulse Response" open={open} onOpenClose={toggle}>
       <PropertyButton event="RAYTRACER_CALL_METHOD"
                       args={{ method: "calculateImpulseResponse", uuid, isAsync: true, args: undefined }}
                       label="Calculate" tooltip="Calculates the impulse response" />
-      <PropertyButton event="RAYTRACER_PLAY_IR" args={uuid} label="Play" tooltip="Plays the calculated impulse response"
-                      disabled={impulseResponsePlaying} />
+      <PropertyButton event="RAYTRACER_PLAY_IR" args={uuid} label="Play" tooltip="Plays the calculated impulse response" />
       <PropertyButton event="RAYTRACER_DOWNLOAD_IR" args={uuid} label="Download"
                       tooltip="Downloads the calculated broadband impulse response" />
       <PropertyButton event="RAYTRACER_DOWNLOAD_IR_OCTAVE" args={uuid} label="Download by Octave"

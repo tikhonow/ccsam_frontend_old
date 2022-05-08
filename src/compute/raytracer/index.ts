@@ -253,6 +253,7 @@ class RayTracer extends Solver {
   rayPositionIndexDidOverflow = false;
   impulseResponse!: AudioBuffer;
   impulseResponsePlaying = false;
+  impulseResponseCreate = false;
 
   constructor(params?: RayTracerParams) {
     super(params);
@@ -1126,6 +1127,7 @@ class RayTracer extends Solver {
       }
     }
     this.validRayCount = 0;
+    this.impulseResponseCreate = false
     renderer.overlays.global.setCellValue(this.uuid + "-valid-ray-count", this.validRayCount);
     this.rayBufferGeometry.setDrawRange(0, 1);
     this.rayPositionIndex = 0;
@@ -1846,6 +1848,7 @@ class RayTracer extends Solver {
     if (this.receiverIDs.length == 0) throw Error("No receivers have been assigned to the raytracer");
     if (this.sourceIDs.length == 0) throw Error("No sources have been assigned to the raytracer");
     if (this.paths[this.receiverIDs[0]].length == 0) throw Error("No rays have been traced yet");
+    this.impulseResponseCreate = true;
 
     let sorted = this.paths[this.receiverIDs[0]].sort((a, b) => a.time - b.time) as RayPath[];
 

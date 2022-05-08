@@ -52,7 +52,9 @@ export interface PropertyRowButtonProps extends React.ButtonHTMLAttributes<HTMLB
 export default function PropertyRowButton(props: PropertyRowButtonProps) {
   return (
     <PropertyRowButtonContainer>
-      <Button variant="outlined" onClick={props.onClick}>
+      <Button
+        disabled={props.disabled}
+        variant="outlined" onClick={props.onClick}>
         {props.label}
       </Button>
     </PropertyRowButtonContainer>
