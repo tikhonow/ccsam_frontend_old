@@ -29,6 +29,7 @@ import EditorContainer from "./EditorContainer";
 import FullScreenDialog from "./ListOf";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import ProtectedRoute from "../store/auth/ProtectedRoute";
+import SignUp from "../Register";
 
 const darkTheme = createTheme({
   palette: {
@@ -286,6 +287,7 @@ export default class App extends React.Component<any, any> {
             <div>
               <Switch>
                 <Route exact path="/login" component={SignInSide} />
+                <Route exact path="/registration" component={SignUp} />
                 <ProtectedRoute exact path="/" render={(props) => <MainEditor1 {...cram.state} />} />
               </Switch>
             </div>

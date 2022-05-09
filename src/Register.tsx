@@ -13,6 +13,11 @@ import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { Link as L } from "react-router-dom";
+import axios from "axios";
+import authSlice from "./store/auth/auth";
+import { useDispatch } from "react-redux";
+import { useHistory } from "react-router";
+import { BRDFProps } from "./compute/raytracer/brdf";
 
 function Copyright(props: any) {
   return (
@@ -27,16 +32,63 @@ function Copyright(props: any) {
   );
 }
 
+export interface RegistrationProps {
+  name: string,
+  last_name: string,
+  username: string,
+  email:string,
+  password: string,
+  work: string,
+  allowemail: boolean
+}
+
 const theme = createTheme();
 
 export default function SignUp() {
+  const dispatch = useDispatch();
+  const history = useHistory();
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get("email"),
-      password: data.get("password")
-    });
+    const name = data.get("firstName");
+    const sname = data.get("lastName");
+    const email = data.get("email");
+    const login = data.get("login");
+    const password = data.get("password");
+    const work = data.get("work");
+    const allowemail = data.get("allowExtraEmails");
+    const allowpriva = data.get("allowPrivacy");
+    handleReg({
+      name: name!.toString(),
+      last_name: sname!.toString(),
+      username: login!.toString(),
+      email:email!.toString(),
+      password: password!.toString(),
+      work: work!.toString(),
+      allowemail: Boolean(allowemail)
+    })
+
+  };
+  const handleReg = (props: RegistrationProps) => {
+    console.log(process.env.REACT_APP_API_URL);
+    console.log(props)
+    axios
+      .post(`${process.env.REACT_APP_API_URL}/auth/register/`, props)
+      .then((res) => {
+        console.log(res);
+        dispatch(
+          authSlice.actions.setAuthTokens({
+            token: res.data.access,
+            refreshToken: res.data.refresh
+          })
+        );
+        dispatch(authSlice.actions.setAccount(res.data.user));
+        history.push("/");
+      })
+      .catch((err) => {
+        console.log(err);
+        //setMessage(err.response.data.detail.toString());
+      });
   };
 
   return (
@@ -66,7 +118,7 @@ export default function SignUp() {
                   required
                   fullWidth
                   id="firstName"
-                  label="First Name"
+                  label="Имя"
                   autoFocus
                 />
               </Grid>
@@ -75,7 +127,7 @@ export default function SignUp() {
                   required
                   fullWidth
                   id="lastName"
-                  label="Last Name"
+                  label="Фамилия"
                   name="lastName"
                   autoComplete="family-name"
                 />
@@ -85,7 +137,7 @@ export default function SignUp() {
                   required
                   fullWidth
                   id="email"
-                  label="Email Address"
+                  label="Email"
                   name="email"
                   autoComplete="email"
                 />
@@ -94,8 +146,25 @@ export default function SignUp() {
                 <TextField
                   required
                   fullWidth
+                  id="login"
+                  label="Логин"
+                  name="login"
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  id="work"
+                  label="Род вашей деятельности"
+                  name="work"
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  required
+                  fullWidth
                   name="password"
-                  label="Password"
+                  label="Пароль"
                   type="password"
                   id="password"
                   autoComplete="new-password"
@@ -103,8 +172,12 @@ export default function SignUp() {
               </Grid>
               <Grid item xs={12}>
                 <FormControlLabel
-                  control={<Checkbox value="allowExtraEmails" color="primary" />}
-                  label="I want to receive inspiration, marketing promotions and updates via email."
+                  control={<Checkbox name="allowExtraEmails" color="primary" />}
+                  label="Я хочу получать рассылку о новых возможностях CCSAM и новых продуктах компании"
+                />
+                <FormControlLabel
+                  control={<Checkbox required name={"allowPrivacy"} color="primary" />}
+                  label="Я согласен на обработку своих данных"
                 />
               </Grid>
             </Grid>

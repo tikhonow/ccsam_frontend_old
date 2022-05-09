@@ -21,7 +21,7 @@ const Output = ({ uuid }: { uuid: string }) => {
     return (
       <PropertyRowFolder label="Impulse Response" open={open} onOpenClose={toggle}>
         <PropertyButton event="RAYTRACER_CALL_METHOD"
-                        disabled={!name.impulseResponseCreate}
+                        disabled={!name.paths}
                         args={{ method: "calculateImpulseResponse", uuid, isAsync: true, args: undefined }}
                         label="Calculate" tooltip="Calculates the impulse response" />
         <PropertyButton event="RAYTRACER_PLAY_IR" args={uuid} label="Play" tooltip="Plays the calculated impulse response"
