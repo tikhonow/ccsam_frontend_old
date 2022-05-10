@@ -23,8 +23,8 @@ function Copyright(props: any) {
   return (
     <Typography variant="body2" color="text.secondary" align="center" {...props}>
       {"Copyright © "}
-      <Link color="inherit" href="https://mui.com/">
-        Your Website
+      <Link color="inherit" href="https://ccsam.ru/">
+        CCSAM
       </Link>{" "}
       {new Date().getFullYear()}
       {"."}
@@ -102,7 +102,7 @@ export default function SignInSide() {
               <LockOutlinedIcon />
             </Avatar>
             <Typography component="h1" variant="h5">
-              Sign in
+              Вход
             </Typography>
             <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 1 }}>
               <TextField
@@ -127,7 +127,7 @@ export default function SignInSide() {
               />
               <FormControlLabel
                 control={<Checkbox value="remember" color="primary" />}
-                label="Remember me"
+                label="Запомнить меня"
               />
               <Button
                 disabled={loading}
@@ -137,17 +137,17 @@ export default function SignInSide() {
                 sx={{ mt: 3, mb: 2 }}
 
               >
-                Sign In
+                ВОЙТИ
               </Button>
               <Grid container>
                 <Grid item xs>
                   <Link href="#" variant="body2">
-                    Forgot password?
+                    Забыли пароль?
                   </Link>
                 </Grid>
                 <Grid item>
                   <L to="/registration">
-                    {"Don't have an account? Sign Up"}
+                    {"Нет аккаунта? Зарегистрироваться"}
                   </L>
                 </Grid>
               </Grid>

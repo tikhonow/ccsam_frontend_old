@@ -23,8 +23,8 @@ function Copyright(props: any) {
   return (
     <Typography variant="body2" color="text.secondary" align="center" {...props}>
       {"Copyright © "}
-      <Link color="inherit" href="https://mui.com/">
-        Your Website
+      <Link color="inherit" href="https://ccsam.ru/">
+        CCSAM
       </Link>{" "}
       {new Date().getFullYear()}
       {"."}
@@ -107,7 +107,7 @@ export default function SignUp() {
             <LockOutlinedIcon />
           </Avatar>
           <Typography component="h1" variant="h5">
-            Sign up
+            Регистрация
           </Typography>
           <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3 }}>
             <Grid container spacing={2}>
@@ -187,12 +187,12 @@ export default function SignUp() {
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
             >
-              Sign Up
+              Создать аккаунт
             </Button>
             <Grid container justifyContent="flex-end">
               <Grid item>
                 <L to="/login">
-                  Already have an account? Sign in
+                  Есть аккаунт? Войти
                 </L>
               </Grid>
             </Grid>
