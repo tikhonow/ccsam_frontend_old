@@ -6,6 +6,12 @@ import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import MediaCard from "../Card";
 import ImportDialog from "./ImportDialog";
+import axios from "axios";
+import CircularProgress from '@mui/material/CircularProgress';
+import LinearProgress from '@mui/material/LinearProgress';
+import Divider from '@mui/material/Divider';
+import Paper from '@mui/material/Paper';
+import Stack from '@mui/material/Stack';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -52,12 +58,16 @@ function a11yProps(index: number) {
 
 export default function VerticalTabs() {
   const [value, setValue] = useState(0);
+  const [ex, setEx] = useState(false);
   const [data, setData] = useState([] as Project[]);
   useLayoutEffect(() => {
     const fetchPrices = async () => {
-      const res = await fetch(`${process.env.REACT_APP_API_URL}/projects/`);
-      const data = await res.json();
-      setData(data);
+      await axios.get(`${process.env.REACT_APP_API_URL}/projects/`).then(
+        res => {setData(res.data);
+        setEx(true);}
+      ).catch(()=>
+        setEx(false)
+      );
     };
     fetchPrices();
   }, []);
@@ -65,14 +75,7 @@ export default function VerticalTabs() {
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue);
-    console.log(data);
   };
-  const a = [
-    ["Concord", "ping2.png", "Хдесь должно быть описание", "concord", "Студия"],
-    ["Auditorium", "ping3.png", "Концертный зал", "auditorium", "Большой зал"],
-    ["Shoebox", "ping1.png", "Хдесь должно быть описание", "shoebox", "Общее назначение"],
-    ["Торус", "ping4.png", "half Torus", "half", "Не выбрано"]
-  ];
 
   // @ts-ignore
   return (
@@ -100,16 +103,20 @@ export default function VerticalTabs() {
             }
           }}
         >
-          {data.map(
+          {data.length>0?
+            data.map(
             (el) => (
               <MediaCard name={el.name} image={el.image} descr={el.description} purpose={el.purpose} args={el.file}
                          key={el[0]} />
             )
-          )}
+          ) :
+            <Box sx={{ display: 'flex' }}>
+              <CircularProgress />
+            </Box>}
         </Box>
       </TabPanel>
       <TabPanel value={value} index={1}>
-        <ImportDialog />
+        <ImportDialog/>
       </TabPanel>
     </Box>
   );

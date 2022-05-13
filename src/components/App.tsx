@@ -31,6 +31,7 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import ProtectedRoute from "../store/auth/ProtectedRoute";
 import SignUp from "../Register";
 
+
 const darkTheme = createTheme({
   palette: {
     mode: "light"
@@ -288,7 +289,7 @@ export default class App extends React.Component<any, any> {
               <Switch>
                 <Route exact path="/login" component={SignInSide} />
                 <Route exact path="/registration" component={SignUp} />
-                <ProtectedRoute exact path="/" render={(props) => <MainEditor1 {...cram.state} />} />
+                <ProtectedRoute exact path="/editor" render={(props) => <MainEditor1 {...cram.state} />} />
               </Switch>
             </div>
           </Router>

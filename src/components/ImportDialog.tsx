@@ -69,15 +69,7 @@ export default function ImportDialog() {
   };
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        flexWrap: "wrap",
-        "& > :not(style)": {
-          m: 1
-        }
-      }}
-    >
+    <div>
       <div
         className={Classes.DIALOG_BODY}
         onDragLeave={() => setDropAllowed(DROP_ALLOWED.IDK)}
@@ -216,7 +208,7 @@ export default function ImportDialog() {
         value={descr}
         onChange={handleChange1}
         helperText="Please select your currency" />
-    </Box>
+    </div>
   );
 }
 

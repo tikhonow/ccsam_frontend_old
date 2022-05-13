@@ -85,8 +85,8 @@ export default function SignInSide() {
           sm={4}
           md={7}
         >
-          <img src={`${process.env.PUBLIC_URL}/${'yar1.png'}`}/>
-          <img src={`${process.env.PUBLIC_URL}/${'yar2.png'}`}/>
+          <img src={`${process.env.PUBLIC_URL}/${'login1.png'}`}/>
+          <img src={`${process.env.PUBLIC_URL}/${'login2.png'}`}/>
         </Grid>
         <Grid item xs={12} sm={8} md={5} component={Paper} elevation={6} square>
           <Box
