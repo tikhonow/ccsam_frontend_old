@@ -1,5 +1,4 @@
 import React from "react";
-import SplitterLayout from "react-splitter-layout";
 import { FocusStyleManager, Position, Toaster } from "@blueprintjs/core";
 import ObjectView from "./object-view/ObjectView";
 // import ConstructionsView from "./ConstructionsView";
@@ -12,7 +11,7 @@ import { PersistGate } from "redux-persist/integration/react";
 import SignInSide from "../Login";
 
 import MainRightPanel from "./MainRightPanel";
-
+// @ts-nocheck
 import "../css";
 import "./App.css";
 import { Stat } from "./parameter-config/Stats";
@@ -30,7 +29,8 @@ import FullScreenDialog from "./ListOf";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import ProtectedRoute from "../store/auth/ProtectedRoute";
 import SignUp from "../Register";
-
+import SplitterLayout from 'react-splitter-layout';
+import 'react-splitter-layout/lib/index.css';
 
 const darkTheme = createTheme({
   palette: {
@@ -150,6 +150,7 @@ class MainEditor1 extends React.Component<AppProps, AppState> {
         <canvas id="renderer-canvas" ref={this.canvas} />
       </EditorContainer>
     );
+    // @ts-ignore
     const MainApp = (
       <ThemeProvider theme={darkTheme}>
         <NavBarComponent />
@@ -161,6 +162,7 @@ class MainEditor1 extends React.Component<AppProps, AppState> {
 
         <SaveDialog />
         {/* center and right */}
+        {/* @ts-ignore*/}
         <SplitterLayout
           secondaryMinSize={0}
           primaryMinSize={50}
